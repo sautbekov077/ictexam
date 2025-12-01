@@ -1,0 +1,2300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Exam Practice – Multi Sections</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f5f7fb;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      max-width: 900px;
+      width: 100%;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    /* Главный экран */
+    #mainScreen {
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 20px 24px;
+      margin-top: 10px;
+    }
+    .sections-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .section-btn {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: #4f6cff;
+      color: #fff;
+      font-size: 14px;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .section-btn:hover {
+      background: #3e55d0;
+      transform: translateY(-1px);
+    }
+
+    /* Экран теста */
+    #quizScreen {
+      display: none;
+    }
+    .quiz-card {
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 20px 24px;
+      min-height: 260px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: #555;
+    }
+    .question-text {
+      font-size: 18px;
+      margin-bottom: 14px;
+    }
+    .options {
+      margin-top: 10px;
+    }
+    .options label {
+      display: block;
+      margin-bottom: 8px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      font-size: 15px;
+    }
+    .options input {
+      margin-right: 8px;
+    }
+    .options label:hover {
+      background: #f0f4ff;
+      border-color: #4f6cff;
+    }
+    .controls {
+      margin-top: 15px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn-secondary {
+      background: #e2e6f3;
+      color: #333;
+    }
+    .btn-primary {
+      background: #4f6cff;
+      color: #fff;
+    }
+    .btn-danger {
+      background: #e55353;
+      color: #fff;
+    }
+    .btn-primary:disabled,
+    .btn-secondary:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    .pagination {
+      margin-top: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+    }
+    .page-btn {
+      min-width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      background: #e5e9f5;
+      color: #333;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .page-btn.active {
+      background: #4f6cff;
+      color: #fff;
+      transform: scale(1.05);
+    }
+    .page-btn.answered {
+      background: #b7c4ff;
+    }
+
+    #result {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 10px;
+      background: #ffffff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+      display: none;
+    }
+    .correct {
+      color: #1b8c30;
+      font-weight: 600;
+    }
+    .incorrect {
+      color: #d62828;
+      font-weight: 600;
+    }
+    .review {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .review-item {
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px dashed #ddd;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Exam Practice</h1>
+
+    <!-- Главный экран -->
+    <div id="mainScreen">
+      <h2>Select a section</h2>
+      <p>Choose the section you want to practice.</p>
+      <div class="sections-grid" id="sectionsGrid"></div>
+    </div>
+
+    <!-- Экран теста -->
+    <div id="quizScreen">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <h2 id="sectionTitle">Section</h2>
+        <button id="backBtn" class="btn-danger">Back to sections</button>
+      </div>
+
+      <div class="quiz-card">
+        <div>
+          <div class="question-header">
+            <div id="qCounter">Question 1</div>
+            <div id="progressText"></div>
+          </div>
+          <div class="question-text" id="questionText"></div>
+          <div class="options" id="optionsContainer"></div>
+        </div>
+
+        <div class="controls">
+          <button id="prevBtn" class="btn-secondary">Previous</button>
+          <button id="nextBtn" class="btn-secondary">Next</button>
+          <button id="submitBtn" class="btn-primary">Finish test</button>
+        </div>
+      </div>
+
+      <div class="pagination" id="pagination"></div>
+
+      <div id="result"></div>
+    </div>
+  </div>
+
+  <script>
+    // ======= СЕКЦИИ С ВОПРОСАМИ =======
+    const sections = [
+      {
+        id: 1,
+        title: "Section 1 (Q1–Q20)",
+        questions: [
+          {
+            text: "1. A monitor displays information...",
+            options: ["Input device","Output device","Storage device","Processing device"],
+            answer: 1
+          },
+          {
+            text: "2. A microphone is used an input device...",
+            options: ["True","False","Only for recording","Only for output"],
+            answer: 0
+          },
+          {
+            text: "3. The binary equivalent of the Octal number 13 is",
+            options: ["1101","10011","1011","1111"],
+            answer: 2
+          },
+          {
+            text: "4. Which of the following are file extensions for audio files?",
+            options: [".jpg, .bmp",".gif, .png",".mp3, .wav",".txt, .csv"],
+            answer: 2
+          },
+          {
+            text: "5. What software is needed to create slideshows?",
+            options: ["MS Word","MS Excel","MS PowerPoint","MS Access"],
+            answer: 2
+          },
+          {
+            text: "6. Which of the following would you use to find information on the internet?",
+            options: ["Spreadsheet software","Presentation software","Web browser","Word processor"],
+            answer: 2
+          },
+          {
+            text: "7. Presentation Graphics may contain",
+            options: ["Text only","Only images","Text, images, and videos","Tables only"],
+            answer: 2
+          },
+          {
+            text: "8. Most popular Spreadsheet Editor",
+            options: ["PowerPoint","Excel","Photoshop","Word"],
+            answer: 1
+          },
+          {
+            text: "9. Create text-based documents, reports, letters, and memos",
+            options: ["MS Word","MS Excel","MS PowerPoint","MS Paint"],
+            answer: 0
+          },
+          {
+            text: "10. The computer translates the condition of each switch to a number. What number is represented by the OFF state?",
+            options: ["1","0","2","10"],
+            answer: 1
+          },
+          {
+            text: "11. What is Computer software?",
+            options: ["Physical parts of a computer","Programs and operating information","Computer screen only","Keyboard"],
+            answer: 1
+          },
+          {
+            text: "12. What is Computer hardware?",
+            options: ["Programs written for a computer","The set of instructions","Physical parts of a computer","All output devices only"],
+            answer: 2
+          },
+          {
+            text: "13. Terabyte (TB) =",
+            options: ["1024 bytes","1024 kilobytes","1024 gigabytes","1000 megabytes"],
+            answer: 2
+          },
+          {
+            text: "14. Kilobyte (KB) =",
+            options: ["1024 bytes","1000 bytes","1024 kilobits","8 bits"],
+            answer: 0
+          },
+          {
+            text: "15. Short cut key for Bold is",
+            options: ["Ctrl + C","Ctrl + B","Ctrl + X","Ctrl + Z"],
+            answer: 1
+          },
+          {
+            text: "16. The smallest measurement of memory is",
+            options: ["Byte","Bit","Megabyte","Kilobyte"],
+            answer: 1
+          },
+          {
+            text: "17. Short cut key for Copy is",
+            options: ["Ctrl + V","Ctrl + B","Ctrl + X","Ctrl + C"],
+            answer: 3
+          },
+          {
+            text: "18. Short cut key for Undo is",
+            options: ["Ctrl + Z","Ctrl + B","Ctrl + X","Ctrl + C"],
+            answer: 0
+          },
+          {
+            text: "19. Short cut key for Cut is",
+            options: ["Ctrl + Z","Ctrl + B","Ctrl + X","Ctrl + C"],
+            answer: 2
+          },
+          {
+            text: "20. How many bits is a byte?",
+            options: ["16","4","2","8"],
+            answer: 3
+          }
+        ]
+      },
+
+      {
+  id: 2,
+  title: "Section 2 (Q21–Q40)",
+  questions: [
+    {
+      text: "21. Which of these is a valid e-mail address?",
+      options: [
+        "user@@mail.com",
+        "user@mail",
+        "user@mail.com",
+        "user.mail.com"
+      ],
+      answer: 2
+    },
+    {
+      text: "22. Convert hexadecimal value 16 to decimal",
+      options: [
+        "16",
+        "22",
+        "10",
+        "28"
+      ],
+      answer: 1 // 0x16 = 22₁₀
+    },
+    {
+      text: "23. You can take a selection that you have cut or copied from the clipboard and ___ it into a document",
+      options: [
+        "paste",
+        "save",
+        "print",
+        "delete"
+      ],
+      answer: 0
+    },
+    {
+      text: "24. Short cut key for Paste is",
+      options: [
+        "Ctrl + X",
+        "Ctrl + V",
+        "Ctrl + C",
+        "Ctrl + P"
+      ],
+      answer: 1
+    },
+    {
+      text: "25. Times New Roman, Comic Sans and Calibri are called __",
+      options: [
+        "fonts",
+        "files",
+        "styles",
+        "layouts"
+      ],
+      answer: 0
+    },
+    {
+      text: "26. What happens in a document when the \"cut\" command is used?",
+      options: [
+        "Text is copied and stays in place",
+        "Text is removed and stored on the clipboard",
+        "Text is deleted permanently",
+        "Nothing happens"
+      ],
+      answer: 1
+    },
+    {
+      text: "27. Which of the following is not currently a topic in computer science?",
+      options: [
+        "Operating systems",
+        "Word processing",
+        "Networks",
+        "Biology of plants"
+      ],
+      answer: 3
+    },
+    {
+      text: "28. The 0 and 1 in the binary numbering system are called binary digits or",
+      options: [
+        "bytes",
+        "bits",
+        "nibbles",
+        "words"
+      ],
+      answer: 1
+    },
+    {
+      text: "29. The binary equivalent of the Hexadecimal number 74A is",
+      options: [
+        "0111 0100 1010",
+        "1110 0100 1010",
+        "0111 0010 1010",
+        "0111 0101 1010"
+      ],
+      answer: 0 // 7=0111, 4=0100, A=1010
+    },
+    {
+      text: "30. Why we need a program Excel?",
+      options: [
+        "For image editing",
+        "For presentations",
+        "For working with tables and calculations",
+        "For browsing the Internet"
+      ],
+      answer: 2
+    },
+    {
+      text: "31. The binary equivalent of the Hexadecimal number 7BD is",
+      options: [
+        "0111 1011 1101",
+        "0111 1010 1101",
+        "0111 1101 1011",
+        "0111 1110 1101"
+      ],
+      answer: 0 // 7=0111, B=1011, D=1101
+    },
+    {
+      text: "32. The computer translates the condition of each switch to a number. What number is represented by the ON state?",
+      options: [
+        "1",
+        "0",
+        "2",
+        "10"
+      ],
+      answer: 0
+    },
+    {
+      text: "33. What is the meaning of \"$\" in the program Excel",
+      options: [
+        "It makes an address relative",
+        "It makes an address absolute (fixes row/column)",
+        "It deletes a cell",
+        "It formats as currency only"
+      ],
+      answer: 1
+    },
+    {
+      text: "34. To make a cell ABSOLUTE address, we should...",
+      options: [
+        "remove the $ sign",
+        "add the $ sign before column and/or row",
+        "change cell color",
+        "press Delete"
+      ],
+      answer: 1
+    },
+    {
+      text: "35. What is the meaning of \"C$5\" in the program Excel",
+      options: [
+        "Absolute column and row",
+        "Relative column and row",
+        "Relative column, absolute row",
+        "Absolute column, relative row"
+      ],
+      answer: 2
+    },
+    {
+      text: "36. What \"Master function\" button used for in the Excel?",
+      options: [
+        "To insert functions into a cell",
+        "To sort data",
+        "To format charts",
+        "To print a worksheet"
+      ],
+      answer: 0
+    },
+    {
+      text: "37. Choose the right cell address",
+      options: [
+        "A1B",
+        "1A",
+        "AA10",
+        "A@10"
+      ],
+      answer: 2
+    },
+    {
+      text: "38. Choose the right cell address",
+      options: [
+        "B2",
+        "2B3",
+        "B23C",
+        "B-2"
+      ],
+      answer: 0
+    },
+    {
+      text: "39. What is MIN() function",
+      options: [
+        "Returns the maximum value in a range",
+        "Returns the smallest value in a range",
+        "Counts the number of cells",
+        "Calculates the sum"
+      ],
+      answer: 1
+    },
+    {
+      text: "40. What is MAX() function",
+      options: [
+        "Returns the maximum value in a range",
+        "Returns the smallest value in a range",
+        "Counts the number of cells",
+        "Calculates the average"
+      ],
+      answer: 0
+    }
+  ]
+},
+
+    
+    {
+  id: 3,
+  title: "Section 3 (Q41–Q60)",
+  questions: [
+    {
+      text: "41. What is AVERAGE() function",
+      options: [
+        "Returns the sum of numbers",
+        "Returns the average (arithmetic mean) of numbers",
+        "Returns the maximum value",
+        "Returns the minimum value"
+      ],
+      answer: 1
+    },
+    {
+      text: "42. Before we start writing any formula to a cell, we select it and press the symbol....",
+      options: [
+        "=",
+        "+",
+        ":",
+        "#"
+      ],
+      answer: 0
+    },
+    {
+      text: "43. Choose wrong expression in the Excel",
+      options: [
+        "=A1+B1",
+        "=SUM(A1:A10)",
+        "A1+A2=",
+        "=A1*B1"
+      ],
+      answer: 2
+    },
+    {
+      text: "44. Choose right expression in the Excel",
+      options: [
+        "A1+B1=",
+        "=A1+B1",
+        "=A1+B1+",
+        "A1=B1+C1"
+      ],
+      answer: 1
+    },
+    {
+      text: "45. What will we get in cell A3, if the cells are A1=500; A2=450, then select these two cells and use autofill?",
+      options: [
+        "400",
+        "450",
+        "550",
+        "500"
+      ],
+      answer: 0
+    },
+    {
+      text: "46. What will we get in cell A3, if the cells are A1=300; A2=350, then select these two cells and use autofill?",
+      options: [
+        "250",
+        "300",
+          "400",
+        "350"
+      ],
+      answer: 2
+    },
+    {
+      text: "47. Can a cell be transferred from horizontal position to vertical in the Excel?",
+      options: [
+        "Yes, by changing text direction/Orientation",
+        "No, it is impossible",
+        "Only with macros",
+        "Only by merging cells"
+      ],
+      answer: 0
+    },
+    {
+      text: "48. What kind of address $C$1 is",
+      options: [
+        "Relative",
+        "Absolute (fixed column and row)",
+        "Mixed: relative column, absolute row",
+        "Mixed: absolute column, relative row"
+      ],
+      answer: 1
+    },
+    {
+      text: "49. What kind of address C$1 is",
+      options: [
+        "Relative",
+        "Absolute (fixed column and row)",
+        "Mixed: relative column, absolute row",
+        "Mixed: absolute column, relative row"
+      ],
+      answer: 2
+    },
+    {
+      text: "50. What kind of address $C1 is",
+      options: [
+        "Relative",
+        "Absolute (fixed column and row)",
+        "Mixed: relative column, absolute row",
+        "Mixed: absolute column, relative row"
+      ],
+      answer: 3
+    },
+    {
+      text: "51. What kind of address C1 is",
+      options: [
+        "Relative",
+        "Absolute (fixed column and row)",
+        "Mixed",
+        "Invalid"
+      ],
+      answer: 0
+    },
+    {
+      text: "52. ###### means:",
+      options: [
+        "Cell contains an error",
+        "Column is too narrow to display the value",
+        "Cell is empty",
+        "The formula is incorrect"
+      ],
+      answer: 1
+    },
+    {
+      text: "53. In order to multiply items in Excel you would use:",
+      options: [
+        "Plus sign (+)",
+        "Minus sign (-)",
+        "Asterisk (*)",
+        "Slash (/)"
+      ],
+      answer: 2
+    },
+    {
+      text: "54. If cells: A1=90; A2=85; A3=80; A4=75; A5=75. What will be your formula if you are going to get the total? Choose INCORRECT answer!",
+      options: [
+        "=SUM(A1:A5)",
+        "=A1+A2+A3+A4+A5",
+        "=SUM(A1;A5)",
+        "=SUM(A1:A4)+A5"
+      ],
+      answer: 2
+    },
+    {
+      text: "55. The value in cell E10 = 75, if the student's mark (E10) is higher than 74, the results will be \"PASSED\" or \"FAILED\". Possible correct formula:",
+      options: [
+        "=IF(E10>74,\"PASSED\",\"FAILED\")",
+        "=IF(E10<74,\"PASSED\",\"FAILED\")",
+        "=IF(E10=74,\"PASSED\",\"FAILED\")",
+        "=IF(E10>=100,\"PASSED\",\"FAILED\")"
+      ],
+      answer: 0
+    },
+    {
+      text: "56. E-Government portal of Kazakhstan",
+      options: [
+        "egov.kz",
+        "kzgov.kz",
+        "e-kazakhstan.kz",
+        "kazportal.kz"
+      ],
+      answer: 0
+    },
+    {
+      text: "57. EDS stands for …",
+      options: [
+        "Electronic Data Storage",
+        "Electronic Digital Signature",
+        "Electronic Data System",
+        "External Drive Storage"
+      ],
+      answer: 1
+    },
+    {
+      text: "58. HTML stands for …",
+      options: [
+        "HyperText Markup Language",
+        "HighText Machine Language",
+        "Home Tool Markup Language",
+        "Hyperlink and Text Management Language"
+      ],
+      answer: 0
+    },
+    {
+      text: "59. … determines that the document background – yellow color and the text will be blue (HTML)",
+      options: [
+        "<body bgcolor=\"yellow\" text=\"blue\">",
+        "<background color=\"yellow\" text=\"blue\">",
+        "<bgcolor=\"yellow\" textcolor=\"blue\">",
+        "<body color=\"yellow\" blue>"
+      ],
+      answer: 0
+    },
+    {
+      text: "60. … determines that the document background – image type and the text will be red (HTML)",
+      options: [
+        "<body background=\"image.jpg\" text=\"red\">",
+        "<background image=\"image.jpg\" text=\"red\">",
+        "<body img=\"image.jpg\" color=\"red\">",
+        "<img background=\"image.jpg\" text=\"red\">"
+      ],
+      answer: 0
+    }
+  ]
+},
+
+{
+  id: 4,
+  title: "Section 4 (Q61–Q80)",
+  questions: [
+    {
+      text: "61. How to identify the numbered and unnumbered lists (HTML)",
+      options: [
+        "<ol> and <ul>",
+        "<li> and <tr>",
+        "<list> and <ulist>",
+        "<p> and <br>"
+      ],
+      answer: 0
+    },
+    {
+      text: "62. How to identify the italic and bold text (HTML)",
+      options: [
+        "<italic> and <bold>",
+        "<i> and <b>",
+        "<bt> and <it>",
+        "<em> and <strong>"
+      ],
+      answer: 1
+    },
+    {
+      text: "63. How to identify the Headers of paragraph (HTML)",
+      options: [
+        "<h1> to <h6>",
+        "<title>",
+        "<p>",
+        "<header>"
+      ],
+      answer: 0
+    },
+    {
+      text: "64. How to identify the beginning of a new paragraph (HTML)",
+      options: [
+        "<p>",
+        "<br>",
+        "<h1>",
+        "<body>"
+      ],
+      answer: 0
+    },
+    {
+      text: "65. How to insert a hyperlink to a document of this type to Task1.html (HTML)",
+      options: [
+        "<a href='Task1.html'>link</a>",
+        "<link src='Task1.html'>",
+        "<href='Task1.html'>",
+        "<url='Task1.html'>"
+      ],
+      answer: 0
+    },
+    {
+      text: "66. In the HTML every code called as …",
+      options: [
+        "file",
+        "tag",
+        "link",
+        "style"
+      ],
+      answer: 1
+    },
+    {
+      text: "67. This diagram is used as a tool to visualize the workflow",
+      options: [
+        "Flowchart",
+        "Blueprint",
+        "Timeline",
+        "Histogram"
+      ],
+      answer: 0
+    },
+    {
+      text: "68. … is a computer file created using a special hypertext markup language HTML.",
+      options: [
+        "HTML document",
+        "Spreadsheet",
+        "PDF document",
+        "Image file"
+      ],
+      answer: 0
+    },
+    {
+      text: "69. Web-site …",
+      options: [
+        "collection of web pages under one domain name",
+        "single web page",
+        "part of a desktop application",
+        "local folder"
+      ],
+      answer: 0
+    },
+    {
+      text: "70. What is identifying a resource, provides information on the location of this resource?",
+      options: [
+        "URL",
+        "HTML",
+        "CSS",
+        "Browser"
+      ],
+      answer: 0
+    },
+    {
+      text: "71. Choose tags to create a table in HTML?",
+      options: [
+        "<table>, <tr>, <td>",
+        "<div>, <td>, <th>",
+        "<ul>, <li>, <tr>",
+        "<form>, <input>, <td>"
+      ],
+      answer: 0
+    },
+    {
+      text: "72. Choose tags to enter the window’s title in HTML?",
+      options: [
+        "<body>",
+        "<title>",
+        "<header>",
+        "<main>"
+      ],
+      answer: 1
+    },
+    {
+      text: "73. … - application layer protocol of data transmission.",
+      options: [
+        "HTTP",
+        "FTP",
+        "HTML",
+        "URL"
+      ],
+      answer: 0
+    },
+    {
+      text: "74. … - standardized markup language for documents on the world wide web.",
+      options: [
+        "HTML",
+        "HTTP",
+        "FTP",
+        "URL"
+      ],
+      answer: 0
+    },
+    {
+      text: "75. … - technology of description of the appearance of a document executed by the markup language.",
+      options: [
+        "CSS",
+        "HTML",
+        "HTTP",
+        "URL"
+      ],
+      answer: 0
+    },
+    {
+      text: "76. … is the integrated mechanism of interaction between the state and citizens, state agencies with each other, ensuring consistency with the help of informational technologies.",
+      options: [
+        "E-Government",
+        "Spreadsheet",
+        "Chat application",
+        "Cloud computing"
+      ],
+      answer: 0
+    },
+    {
+      text: "77. What is PowerPoint?",
+      options: [
+        "Presentation software",
+        "Spreadsheet",
+        "Database",
+        "Browser"
+      ],
+      answer: 0
+    },
+    {
+      text: "78. PowerPoint can be used to:",
+      options: [
+        "Create presentations",
+        "Edit photos",
+        "Write code",
+        "Manage databases"
+      ],
+      answer: 0
+    },
+    {
+      text: "79. In what mobile generation was appeared Wi-Fi technology?",
+      options: [
+        "3G",
+        "4G",
+        "2G",
+        "1G"
+      ],
+      answer: 0
+    },
+    {
+      text: "80. Android is best classified as one of the fastest growing of these",
+      options: [
+        "Operating Systems",
+        "Games",
+        "Music formats",
+        "Web browsers"
+      ],
+      answer: 0
+    }
+  ]
+}
+,
+{
+  id: 5,
+  title: "Section 5 (Q81–Q100)",
+  questions: [
+    {
+      text: "81. How much space Google gives users as free?",
+      options: [
+        "10 GB",
+        "5 GB",
+        "15 GB",
+        "50 GB"
+      ],
+      answer: 2 // 15 GB[1][2][7]
+    },
+    {
+      text: "82. Conversion of a hexadecimal number 3D to binary number is",
+      options: [
+        "01111110",
+        "01111011",
+        "00111101",
+        "10111100"
+      ],
+      answer: 2 // 3 = 0011, D = 1101 → 00111101
+    },
+    {
+      text: "83. The decimal equivalent of the binary number 100101 is",
+      options: [
+        "37",
+        "41",
+        "53",
+        "21"
+      ],
+      answer: 0 // 32+0+0+8+0+1 = 37
+    },
+    {
+      text: "84. Conversion of an octal number 106 to binary number is",
+      options: [
+        "100110",
+        "010110",
+        "001110",
+        "100110"
+      ],
+      answer: 0 // 1=001, 0=000, 6=110 -> 001 000 110 = 100110
+    },
+    {
+      text: "85. Conversion of an octal number 73 to binary number is",
+      options: [
+        "111011",
+        "101111",
+        "011111",
+        "100111"
+      ],
+      answer: 0 // 7=111, 3=011 → 111011
+    },
+    {
+      text: "86. The decimal equivalent of the binary number 1010100 is",
+      options: [
+        "84",
+        "104",
+        "64",
+        "75"
+      ],
+      answer: 0 // 64+16+4=84
+    },
+    {
+      text: "87. Conversion of a hexadecimal number D8 to binary number is",
+      options: [
+        "11011000",
+        "11010100",
+        "10111000",
+        "10001101"
+      ],
+      answer: 0 // D=1101, 8=1000 → 11011000
+    },
+    {
+      text: "88. The octal equivalent of the number 10011.1101 is",
+      options: [
+        "23.64",
+        "27.32",
+        "25.67",
+        "23.71"
+      ],
+      answer: 0 // 10011 = 23, .1101 ≈ .64
+    },
+    {
+      text: "89. The decimal equivalent of the binary number 101011 is",
+      options: [
+        "42",
+        "43",
+        "33",
+        "65"
+      ],
+      answer: 1 // 32+8+0+2+1=43
+    },
+    {
+      text: "90. HTML file’s type?",
+      options: [
+        ".docx",
+        ".pptx",
+        ".html",
+        ".xls"
+      ],
+      answer: 2
+    },
+    {
+      text: "91. Format of the HTML document.",
+      options: [
+        "Hyper Text Markup Language",
+        "Portable Document Format",
+        "Rich Text Format",
+        "Document File"
+      ],
+      answer: 0
+    },
+    {
+      text: "92. … - is a program to create video.",
+      options: [
+        "PowerPoint",
+        "Excel",
+        "Windows Movie Maker",
+        "MS Word"
+      ],
+      answer: 2
+    },
+    {
+      text: "93. Select the function to display records that meet certain criteria in Excel.",
+      options: [
+        "Sort",
+        "Filter",
+        "Format",
+        "Insert"
+      ],
+      answer: 1
+    },
+    {
+      text: "94. Find the NAME whose 2nd letter is “m” using the text filter in Excel.",
+      options: [
+        "Sam",
+        "Amy",
+        "Tim",
+        "Tom"
+      ],
+      answer: 1 // Amy (A*m*y)
+    },
+    {
+      text: "95. Tag for background’s color of the document in HTML?",
+      options: [
+        "<body bgcolor=\"color\">",
+        "<head bgcolor=\"color\">",
+        "<html color=\"bgcolor\">",
+        "<background color=\"body\">"
+      ],
+      answer: 0
+    },
+    {
+      text: "96. an example of numbered list in HTML.",
+      options: [
+        "<ol>",
+        "<ul>",
+        "<li>",
+        "<dl>"
+      ],
+      answer: 0
+    },
+    {
+      text: "97. Tag of unnumbered list in HTML.",
+      options: [
+        "<ul>",
+        "<ol>",
+        "<li>",
+        "<table>"
+      ],
+      answer: 0
+    },
+    {
+      text: "98. Tag for the first level, size of words in HTML.",
+      options: [
+        "<h1>",
+        "<h2>",
+        "<h3>",
+        "<p>"
+      ],
+      answer: 0
+    },
+    {
+      text: "99. Tag for the second level, size of words in HTML.",
+      options: [
+        "<h1>",
+        "<h2>",
+        "<h3>",
+        "<h4>"
+      ],
+      answer: 1
+    },
+    {
+      text: "100. Tag for the third level, size of words in HTML.",
+      options: [
+        "<h1>",
+        "<h2>",
+        "<h3>",
+        "<h4>"
+      ],
+      answer: 2
+    }
+  ]
+}
+,
+{
+  id: 6,
+  title: "Section 6 (Q101–Q120)",
+  questions: [
+    {
+      text: "101. Tag for the fourth level, size of words in HTML.",
+      options: ["<h1>", "<h2>", "<h4>", "<h6>"],
+      answer: 2
+    },
+    {
+      text: "102. Tag for the fifth level, size of words in HTML.",
+      options: ["<h3>", "<h4>", "<h5>", "<h6>"],
+      answer: 2
+    },
+    {
+      text: "103. Tag for the sixth level, size of words in HTML.",
+      options: ["<h4>", "<h5>", "<h6>", "<h3>"],
+      answer: 2
+    },
+    {
+      text: "104. Tag for italic words in HTML.",
+      options: ["<b>", "<i>", "<u>", "<em>"],
+      answer: 1
+    },
+    {
+      text: "105. Tag for bold words in HTML.",
+      options: ["<strong>", "<i>", "<u>", "<em>"],
+      answer: 0
+    },
+    {
+      text: "106. Tag for underline words in HTML.",
+      options: ["<u>", "<under>", "<line>", "<ul>"],
+      answer: 0
+    },
+    {
+      text: "107. Tag for superscript words in HTML.",
+      options: ["<sub>", "<sup>", "<up>", "<top>"],
+      answer: 1
+    },
+    {
+      text: "108. Tag for subscript words in HTML.",
+      options: ["<sub>", "<sup>", "<down>", "<low>"],
+      answer: 0
+    },
+    {
+      text: "109. Tag for beginning of a new paragraph in HTML.",
+      options: ["<br>", "<p>", "<div>", "<hr>"],
+      answer: 1
+    },
+    {
+      text: "110. Tag for scrolling text in HTML.",
+      options: ["<scroll>", "<marquee>", "<move>", "<slide>"],
+      answer: 1
+    },
+    {
+      text: "111. Tag to insert picture in HTML.",
+      options: ["<image>", "<img>", "<pic>", "<src>"],
+      answer: 1
+    },
+    {
+      text: "112. Tags to skip three lines in HTML.",
+      options: ["<br><br>", "<br><br><br>", "<p><p><p>", "<hr><hr><hr>"],
+      answer: 1
+    },
+    {
+      text: "113. Tags to skip two lines in HTML.",
+      options: ["<br><br>", "<br><br><br>", "<p><p>", "<hr><br>"],
+      answer: 0
+    },
+    {
+      text: "114. Tags to skip four lines in HTML.",
+      options: ["<br><br><br>", "<br><br><br><br>", "<p><p><p><p>", "<hr><hr>"],
+      answer: 1
+    },
+    {
+      text: "115. Tag to insert a hyperlink in HTML.",
+      options: ["<a>", "<link>", "<href>", "<url>"],
+      answer: 0
+    },
+    {
+      text: "116. Tag to insert background’s picture in HTML.",
+      options: [
+        "<body background=\"image.jpg\">",
+        "<bg image=\"image.jpg\">",
+        "<background src=\"image.jpg\">",
+        "<img background=\"image.jpg\">"
+      ],
+      answer: 0
+    },
+    {
+      text: "117. Function in Excel filter, which shows text finishes with letter “z”?",
+      options: [
+        "Equals z*",
+        "Contains *z*",
+        "Ends With z",
+        "Begins With z"
+      ],
+      answer: 2
+    },
+    {
+      text: "118. Function in Excel filter, which shows text starts with letter “a”?",
+      options: [
+        "Begins With a",
+        "Ends With a",
+        "Contains *a*",
+        "Equals a*"
+      ],
+      answer: 0
+    },
+    {
+      text: "119. The valid format of MS Word is ___",
+      options: [".docx", ".xlsx", ".pptx", ".html"],
+      answer: 0
+    },
+    {
+      text: "120. The valid format of MS Excel is ___",
+      options: [".docx", ".xlsx", ".pptx", ".txt"],
+      answer: 1
+    }
+  ]
+}
+,
+{
+  id: 7,
+  title: "Section 7 (Q121–Q140)",
+  questions: [
+    {
+      text: "121. Line spacing is in the ____ of MS Word",
+      options: [
+        "Home tab, Paragraph group",
+        "Insert tab, Pages group",
+        "Layout tab, Page Setup group",
+        "Review tab, Proofing group"
+      ],
+      answer: 0
+    },
+    {
+      text: "122. Arial, Cambria, Verdana, Times New Roman are the name of ____",
+      options: [
+        "colors",
+        "fonts",
+        "styles",
+        "paragraphs"
+      ],
+      answer: 1
+    },
+    {
+      text: "123. Which file format cannot be added to a Word document using Special Paste?",
+      options: [
+        "Bitmap",
+        "Picture (PNG, JPG)",
+        "HTML format",
+        "Executable file (.exe)"
+      ],
+      answer: 3
+    },
+    {
+      text: "124. Which of the following is not an option in clipboard?",
+      options: [
+        "Cut",
+        "Copy",
+        "Paste",
+        "Save"
+      ],
+      answer: 3
+    },
+    {
+      text: "125. We can insert a page number at",
+      options: [
+        "Header or Footer",
+        "Only at the beginning of document",
+        "Only at the end of document",
+        "Only in the margin"
+      ],
+      answer: 0
+    },
+    {
+      text: "126. We can remove / hide border of a shape by selecting …",
+      options: [
+        "No Fill",
+        "No Outline",
+        "No Effect",
+        "Delete Shape"
+      ],
+      answer: 1
+    },
+    {
+      text: "127. Google Docs is most similar to which application?",
+      options: [
+        "MS Excel",
+        "MS Word",
+        "MS PowerPoint",
+        "MS Access"
+      ],
+      answer: 1
+    },
+    {
+      text: "128. Google Sheets is most similar to which application?",
+      options: [
+        "MS Excel",
+        "MS Word",
+        "MS PowerPoint",
+        "MS Access"
+      ],
+      answer: 0
+    },
+    {
+      text: "129. Google Slides is most similar to which application?",
+      options: [
+        "MS Excel",
+        "MS Word",
+        "MS PowerPoint",
+        "MS Access"
+      ],
+      answer: 2
+    },
+    {
+      text: "130. Google Docs allows you to insert or upload images from which source(s)?",
+      options: [
+        "Only from computer",
+        "Computer and web",
+        "Computer, web, Google Drive, and more",
+        "Only from web"
+      ],
+      answer: 2
+    },
+    {
+      text: "131. To add text boxes or shapes to your document, you will need to ________.",
+      options: [
+        "use Drawing tools / Insert → Drawing",
+        "use Review tab",
+        "change page layout",
+        "use Mailings tab"
+      ],
+      answer: 0
+    },
+    {
+      text: "132. Year of invention of the telegraph?",
+      options: [
+        "1837",
+        "1876",
+        "1969",
+        "1991"
+      ],
+      answer: 0
+    },
+    {
+      text: "133. Year of invention of the telephone?",
+      options: [
+        "1837",
+        "1876",
+        "1969",
+        "1991"
+      ],
+      answer: 1
+    },
+    {
+      text: "134. When did World Wide Web introduce?",
+      options: [
+        "1969",
+        "1983",
+        "1991",
+        "2000"
+      ],
+      answer: 2
+    },
+    {
+      text: "135. When does IBM announce its Systems Network Architecture (SNA)?",
+      options: [
+        "1969",
+        "1974",
+        "1983",
+        "1991"
+      ],
+      answer: 1
+    },
+    {
+      text: "136. The electronic transmission of signals for communications",
+      options: [
+        "Telecommunications",
+        "Database",
+        "Programming",
+        "Word processing"
+      ],
+      answer: 0
+    },
+    {
+      text: "137. What does share hardware, programs, and databases across the organization?",
+      options: [
+        "Computer network",
+        "Printer",
+        "Monitor",
+        "Standalone PC"
+      ],
+      answer: 0
+    },
+    {
+      text: "138. What Internet networking technologies are being used as technology platform",
+      options: [
+        "Intranet and Extranet",
+        "Word and Excel",
+        "Wi-Fi and Bluetooth only",
+        "Scanner and Printer"
+      ],
+      answer: 0
+    },
+    {
+      text: "139. First ARPANET appeared in …",
+      options: [
+        "1969",
+        "1974",
+        "1983",
+        "1991"
+      ],
+      answer: 0
+    },
+    {
+      text: "140. First e-mail program created in….",
+      options: [
+        "1971",
+        "1969",
+        "1983",
+        "1991"
+      ],
+      answer: 0
+    }
+  ]
+}
+,
+{
+  id: 8,
+  title: "Section 8 (Q141–Q160)",
+  questions: [
+    {
+      text: "141. How many generations of computers you know?",
+      options: ["3", "4", "5", "6"],
+      answer: 2
+    },
+    {
+      text: "142. The third generation of computers covers the period:",
+      options: [
+        "1940s–1950s",
+        "1950s–1960s",
+        "1960s–1970s",
+        "1970s–present"
+      ],
+      answer: 2
+    },
+    {
+      text: "143. First generation computers are characterized by",
+      options: [
+        "Vacuum tubes technology",
+        "Transistors",
+        "Integrated circuits",
+        "Microprocessors"
+      ],
+      answer: 0
+    },
+    {
+      text: "144. The transistorized computer circuits were introduced in the",
+      options: [
+        "First generation",
+        "Second generation",
+        "Third generation",
+        "Fourth generation"
+      ],
+      answer: 1
+    },
+    {
+      text: "145. Integrated circuit (ICs) as basic electronic component (SSIC and MSIC)",
+      options: [
+        "First generation",
+        "Second generation",
+        "Third generation",
+        "Fourth generation"
+      ],
+      answer: 2
+    },
+    {
+      text: "146. The monitor of a computer is connected to it by a",
+      options: [
+        "Power cable only",
+        "Video cable (VGA/HDMI/DisplayPort)",
+        "USB cable only",
+        "Network cable"
+      ],
+      answer: 1
+    },
+    {
+      text: "147. Which of the following is still useful for adding numbers?",
+      options: [
+        "Abacus",
+        "Typewriter",
+        "Printer",
+        "Scanner"
+      ],
+      answer: 0
+    },
+    {
+      text: "148. When was built the first computer and how is called?",
+      options: [
+        "ENIAC, 1945",
+        "UNIVAC, 1936",
+        "IBM PC, 1981",
+        "Apple II, 1977"
+      ],
+      answer: 0
+    },
+    {
+      text: "149. Computer understands _________________ language",
+      options: [
+        "High-level programming",
+        "Natural",
+        "Machine (binary)",
+        "Assembly only"
+      ],
+      answer: 2
+    },
+    {
+      text: "150. Which of the following are file extensions for text editor files?",
+      options: [
+        ".txt, .rtf",
+        ".jpg, .png",
+        ".mp3, .wav",
+        ".exe, .bat"
+      ],
+      answer: 0
+    },
+    {
+      text: "151. What does ICT stand for?",
+      options: [
+        "Information and Communication Technology",
+        "Integrated Computer Technology",
+        "Internet and Computer Tools",
+        "Information Control Techniques"
+      ],
+      answer: 0
+    },
+    {
+      text: "152. What is the main function of an operating system?",
+      options: [
+        "To design web pages",
+        "To manage hardware and software resources",
+        "To print documents",
+        "To write emails"
+      ],
+      answer: 1
+    },
+    {
+      text: "153. Which of the following is an example of hardware?",
+      options: [
+        "Operating system",
+        "Antivirus program",
+        "Keyboard",
+        "Spreadsheet file"
+      ],
+      answer: 2
+    },
+    {
+      text: "154. What is the primary purpose of a database?",
+      options: [
+        "To edit images",
+        "To store and organize data",
+        "To play games",
+        "To browse the web"
+      ],
+      answer: 1
+    },
+    {
+      text: "155. What does CPU stand for?",
+      options: [
+        "Central Processing Unit",
+        "Central Program Unit",
+        "Control Processing Unit",
+        "Computer Power Unit"
+      ],
+      answer: 0
+    },
+    {
+      text: "156. Which one of the following is an example of cloud storage?",
+      options: [
+        "Google Drive",
+        "DVD",
+        "USB flash drive",
+        "Local hard disk"
+      ],
+      answer: 0
+    },
+    {
+      text: "157. What is the full form of Wi-Fi?",
+      options: [
+        "Wireless Fidelity",
+        "Wired Fiber",
+        "Wide Fiber",
+        "Wireless Finder"
+      ],
+      answer: 0
+    },
+    {
+      text: "158. What does a firewall do?",
+      options: [
+        "Protects a network by filtering traffic",
+        "Prints documents",
+        "Stores data permanently",
+        "Increases screen brightness"
+      ],
+      answer: 0
+    },
+    {
+      text: "159. What is a URL?",
+      options: [
+        "Universal Resource Locator",
+        "Unified Response Link",
+        "Universal Routing Line",
+        "User Registered Link"
+      ],
+      answer: 0
+    },
+    {
+      text: "160. What is malware?",
+      options: [
+        "Malicious software",
+        "Computer hardware",
+        "Type of database",
+        "Programming language"
+      ],
+      answer: 0
+    }
+  ]
+}
+,
+{
+  id: 9,
+  title: "Section 9 (Q161–Q180)",
+  questions: [
+    {
+      text: "161. Which one of these is an operating system?",
+      options: [
+        "Microsoft Word",
+        "Windows 10",
+        "Google Chrome",
+        "Adobe Photoshop"
+      ],
+      answer: 1
+    },
+    {
+      text: "162. What is the role of a router in a network?",
+      options: [
+        "Stores data permanently",
+        "Connects devices within the same network",
+        "Routes data between different networks",
+        "Displays web pages"
+      ],
+      answer: 2
+    },
+    {
+      text: "163. What does DNS stand for?",
+      options: [
+        "Dynamic Network System",
+        "Domain Name System",
+        "Digital Network Service",
+        "Data Network Security"
+      ],
+      answer: 1
+    },
+    {
+      text: "164. Which of the following is NOT a type of computer memory?",
+      options: [
+        "RAM",
+        "ROM",
+        "Cache",
+        "Hard Drive"
+      ],
+      answer: 3
+    },
+    {
+      text: "165. What is the primary function of a web browser?",
+      options: [
+        "Store files",
+        "Display and interact with web pages",
+        "Process calculations",
+        "Manage network connections"
+      ],
+      answer: 1
+    },
+    {
+      text: "166. What is cloud computing?",
+      options: [
+        "Storing data on local hard drives",
+        "Using remote servers over the internet for computing",
+        "Installing software on your computer",
+        "Creating backup files"
+      ],
+      answer: 1
+    },
+    {
+      text: "167. Which of the following is a search engine?",
+      options: [
+        "Google Chrome",
+        "Mozilla Firefox",
+        "Google Search",
+        "Microsoft Word"
+      ],
+      answer: 2
+    },
+    {
+      text: "168. Which programming language is widely used for web development?",
+      options: [
+        "Python",
+        "Java",
+        "JavaScript",
+        "C++"
+      ],
+      answer: 2
+    },
+    {
+      text: "169. What is the main function of RAM in a computer?",
+      options: [
+        "Long-term storage",
+        "Temporary storage for running programs",
+        "Processing calculations",
+        "Connecting to the internet"
+      ],
+      answer: 1
+    },
+    {
+      text: "170. What is a domain name?",
+      options: [
+        "A computer's IP address",
+        "A human-readable address for websites",
+        "A type of file extension",
+        "A programming language"
+      ],
+      answer: 1
+    },
+    {
+      text: "171. What does HTML stand for?",
+      options: [
+        "HyperText Markup Language",
+        "High-Tech Machine Language",
+        "Home Tool Markup Language",
+        "Hyperlink Text Management Language"
+      ],
+      answer: 0
+    },
+    {
+      text: "172. What is the primary function of an antivirus program?",
+      options: [
+        "Speed up internet browsing",
+        "Detect and remove malicious software",
+        "Create documents",
+        "Play videos"
+      ],
+      answer: 1
+    },
+    {
+      text: "173. What is a VPN (Virtual Private Network)?",
+      options: [
+        "A type of antivirus software",
+        "A secure connection that masks your IP address",
+        "A cloud storage service",
+        "A web browser extension"
+      ],
+      answer: 1
+    },
+    {
+      text: "174. What is the function of a modem?",
+      options: [
+        "Stores data",
+        "Converts digital signals to analog for internet connection",
+        "Displays images",
+        "Processes audio"
+      ],
+      answer: 1
+    },
+    {
+      text: "175. Which of the following is a type of software?",
+      options: [
+        "Keyboard",
+        "Microsoft Office",
+        "Monitor",
+        "Hard Drive"
+      ],
+      answer: 1
+    },
+    {
+      text: "176. What is a \"cookie\" in the context of web browsing?",
+      options: [
+        "A type of virus",
+        "Small data stored by websites to remember user preferences",
+        "A file format",
+        "A programming error"
+      ],
+      answer: 1
+    },
+    {
+      text: "177. What does IoT stand for?",
+      options: [
+        "Internet of Things",
+        "Integrated Operating Technology",
+        "Intelligent Online Tools",
+        "Internet Operating Terminal"
+      ],
+      answer: 0
+    },
+    {
+      text: "178. What is a URL shortener used for?",
+      options: [
+        "Encrypting websites",
+        "Creating shorter, easier-to-share web addresses",
+        "Blocking advertisements",
+        "Speeding up downloads"
+      ],
+      answer: 1
+    },
+    {
+      text: "179. What is the function of a database management system (DBMS)?",
+      options: [
+        "Create graphics",
+        "Store, retrieve, and manage data",
+        "Play music",
+        "Design websites"
+      ],
+      answer: 1
+    },
+    {
+      text: "180. What is e-commerce?",
+      options: [
+        "Electronic mail",
+        "Buying and selling goods/services online",
+        "Creating websites",
+        "Video conferencing"
+      ],
+      answer: 1
+    }
+  ]
+}
+,
+{
+  id: 10,
+  title: "Section 10 (Q181–Q200)",
+  questions: [
+    {
+      text: "181. What is the main difference between RAM and ROM?",
+      options: [
+        "RAM is volatile, ROM is non-volatile",
+        "Both store permanent data",
+        "ROM is faster than RAM",
+        "RAM stores firmware"
+      ],
+      answer: 0
+    },
+    {
+      text: "182. What is an algorithm?",
+      options: [
+        "A computer virus",
+        "A set of step-by-step instructions to solve a problem",
+        "A type of hardware",
+        "A type of software"
+      ],
+      answer: 1
+    },
+    {
+      text: "183. Which of the following is NOT a function of a network?",
+      options: [
+        "Sharing resources",
+        "Sending email",
+        "Printing documents",
+        "Cooking food"
+      ],
+      answer: 3
+    },
+    {
+      text: "184. What does the term “bandwidth” refer to in networking?",
+      options: [
+        "The maximum data transfer rate",
+        "Computer processing speed",
+        "Screen resolution",
+        "Power supply output"
+      ],
+      answer: 0
+    },
+    {
+      text: "185. What is encryption?",
+      options: [
+        "Converting data into a secret code",
+        "Destroying data permanently",
+        "Formatting a hard drive",
+        "Making a backup copy"
+      ],
+      answer: 0
+    },
+    {
+      text: "186. What is a spreadsheet used for?",
+      options: [
+        "Editing images",
+        "Making phone calls",
+        "Managing, calculating, and analyzing data in tabular form",
+        "Browsing the Internet"
+      ],
+      answer: 2
+    },
+    {
+      text: "187. What is a blog?",
+      options: [
+        "A type of printer",
+        "An online journal or informational website",
+        "A kind of network cable",
+        "A format for spreadsheets"
+      ],
+      answer: 1
+    },
+    {
+      text: "188. What is the function of a computer's motherboard?",
+      options: [
+        "Runs application software",
+        "Connects and allows communication between all hardware components",
+        "Processes graphics",
+        "Stores files permanently"
+      ],
+      answer: 1
+    },
+    {
+      text: "189. What is SEO (Search Engine Optimization)?",
+      options: [
+        "A technique to improve a website's visibility in search engines",
+        "A programming language",
+        "A type of web browser",
+        "A backup system"
+      ],
+      answer: 0
+    },
+    {
+      text: "190. Which of these is a type of online transaction?",
+      options: [
+        "E-mailing",
+        "E-commerce payment",
+        "Screen sharing",
+        "Video editing"
+      ],
+      answer: 1
+    },
+    {
+      text: "191. What does the term \"big data\" refer to?",
+      options: [
+        "A large hard disk",
+        "Huge volumes of structured and unstructured data",
+        "High-speed internet access",
+        "Big computing machines"
+      ],
+      answer: 1
+    },
+    {
+      text: "192. What is a system analyst responsible for?",
+      options: [
+        "Designing and evaluating computer systems to meet business needs",
+        "Repairing printers",
+        "Buying software licenses",
+        "Running web searches"
+      ],
+      answer: 0
+    },
+    {
+      text: "193. What is Bluetooth used for?",
+      options: [
+        "Wired internet connection",
+        "Wireless short-range communication between devices",
+        "Printing documents",
+        "Editing images"
+      ],
+      answer: 1
+    },
+    {
+      text: "194. Which of the following is a common web development language?",
+      options: [
+        "JavaScript",
+        "Fortran",
+        "Pascal",
+        "Scratch"
+      ],
+      answer: 0
+    },
+    {
+      text: "195. What is the purpose of the \"cloud\" in cloud computing?",
+      options: [
+        "Providing online storage and computing resources",
+        "Cooling the computer system",
+        "Enhancing screen brightness",
+        "Speeding up local printers"
+      ],
+      answer: 0
+    },
+    {
+      text: "196. What is the difference between a static and a dynamic website?",
+      options: [
+        "Static: content doesn’t change; Dynamic: content updates interactively",
+        "Static: only uses images; Dynamic: only uses text",
+        "Static: can be programmed; Dynamic: cannot be programmed",
+        "Static: has more colors; Dynamic: has less colors"
+      ],
+      answer: 0
+    },
+    {
+      text: "197. What is a search engine?",
+      options: [
+        "Program that helps find information on the internet",
+        "Tool for editing videos",
+        "Network switch",
+        "Word processor"
+      ],
+      answer: 0
+    },
+    {
+      text: "198. What is the purpose of a backup in data management?",
+      options: [
+        "To destroy files",
+        "To provide a copy of data in case of loss",
+        "To write code for websites",
+        "To increase network speed"
+      ],
+      answer: 1
+    },
+    {
+      text: "199. What is the purpose of a printer in computing?",
+      options: [
+        "To display images on the monitor",
+        "To transfer digital information to paper",
+        "To encrypt data",
+        "To provide sound output"
+      ],
+      answer: 1
+    },
+    {
+      text: "200. What does a computer virus do?",
+      options: [
+        "Protects the computer from malware",
+        "Speeds up the processor",
+        "Causes harm by disrupting files or stealing information",
+        "Improves system security"
+      ],
+      answer: 2
+    }
+  ]
+}
+,
+
+
+
+
+
+
+
+
+
+    ];
+
+    // ======= ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =======
+    let currentSection = null;
+    let currentIndex = 0;
+    let userAnswers = [];
+
+    // DOM элементы
+    const mainScreen = document.getElementById("mainScreen");
+    const quizScreen = document.getElementById("quizScreen");
+    const sectionsGrid = document.getElementById("sectionsGrid");
+    const sectionTitle = document.getElementById("sectionTitle");
+    const backBtn = document.getElementById("backBtn");
+
+    const questionText = document.getElementById("questionText");
+    const optionsContainer = document.getElementById("optionsContainer");
+    const qCounter = document.getElementById("qCounter");
+    const progressText = document.getElementById("progressText");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const submitBtn = document.getElementById("submitBtn");
+    const pagination = document.getElementById("pagination");
+    const resultDiv = document.getElementById("result");
+
+    // ====== ГЛАВНЫЙ ЭКРАН ======
+    function renderSectionsList() {
+      sectionsGrid.innerHTML = "";
+      sections.forEach(sec => {
+        const btn = document.createElement("button");
+        btn.className = "section-btn";
+        btn.textContent = sec.title;
+        btn.addEventListener("click", () => startSection(sec.id));
+        sectionsGrid.appendChild(btn);
+      });
+    }
+
+    function startSection(sectionId) {
+      currentSection = sections.find(s => s.id === sectionId);
+      if (!currentSection) return;
+
+      currentIndex = 0;
+      userAnswers = new Array(currentSection.questions.length).fill(null);
+      sectionTitle.textContent = currentSection.title;
+      resultDiv.style.display = "none";
+      resultDiv.innerHTML = "";
+
+      mainScreen.style.display = "none";
+      quizScreen.style.display = "block";
+
+      renderQuestion();
+    }
+
+    backBtn.addEventListener("click", () => {
+      currentSection = null;
+      mainScreen.style.display = "block";
+      quizScreen.style.display = "none";
+      window.scrollTo(0,0);
+    });
+
+    // ====== ОТРИСОВКА ВОПРОСОВ В СЕКЦИИ ======
+    function renderPagination() {
+      pagination.innerHTML = "";
+      const total = currentSection.questions.length;
+      currentSection.questions.forEach((_, i) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = i + 1;
+        btn.className = "page-btn";
+        if (i === currentIndex) btn.classList.add("active");
+        if (userAnswers[i] !== null) btn.classList.add("answered");
+        btn.addEventListener("click", () => {
+          saveCurrentAnswer();
+          currentIndex = i;
+          renderQuestion();
+        });
+        pagination.appendChild(btn);
+      });
+    }
+
+    function renderQuestion() {
+      const questions = currentSection.questions;
+      const q = questions[currentIndex];
+
+      qCounter.textContent = `Question ${currentIndex + 1} of ${questions.length}`;
+      const answeredCount = userAnswers.filter(a => a !== null).length;
+      progressText.textContent = `${answeredCount} answered`;
+
+      questionText.textContent = q.text;
+      optionsContainer.innerHTML = "";
+      q.options.forEach((opt, idx) => {
+        const label = document.createElement("label");
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = "option";
+        input.value = idx;
+        if (userAnswers[currentIndex] === idx) {
+          input.checked = true;
+        }
+        label.appendChild(input);
+        label.append(" " + opt);
+        optionsContainer.appendChild(label);
+      });
+
+      prevBtn.disabled = currentIndex === 0;
+      nextBtn.disabled = currentIndex === questions.length - 1;
+
+      renderPagination();
+    }
+
+    function saveCurrentAnswer() {
+      const selected = document.querySelector('input[name="option"]:checked');
+      userAnswers[currentIndex] = selected ? Number(selected.value) : null;
+    }
+
+    prevBtn.addEventListener("click", () => {
+      saveCurrentAnswer();
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderQuestion();
+      }
+    });
+
+    nextBtn.addEventListener("click", () => {
+      saveCurrentAnswer();
+      const questions = currentSection.questions;
+      if (currentIndex < questions.length - 1) {
+        currentIndex++;
+        renderQuestion();
+      }
+    });
+
+    submitBtn.addEventListener("click", () => {
+      saveCurrentAnswer();
+      const questions = currentSection.questions;
+      let correct = 0;
+      const total = questions.length;
+      const reviewItems = [];
+
+      questions.forEach((q, i) => {
+        const userIndex = userAnswers[i];
+        const isCorrect = userIndex === q.answer;
+        if (isCorrect) correct++;
+        if (!isCorrect) {
+          reviewItems.push({
+            num: i + 1,
+            text: q.text,
+            correct: q.options[q.answer],
+            chosen: userIndex !== null ? q.options[userIndex] : "No answer"
+          });
+        }
+      });
+
+      const percent = Math.round((correct / total) * 100);
+      resultDiv.style.display = "block";
+      let html = `<p>Correct: <span class="correct">${correct}</span> / ${total} (${percent}%)</p>`;
+      if (reviewItems.length) {
+        html += `<div class="review"><h3>Review your mistakes:</h3>`;
+        reviewItems.forEach(item => {
+          html += `<div class="review-item">
+            <strong>Q${item.num}:</strong> ${item.text}<br>
+            Your answer: <span class="incorrect">${item.chosen}</span><br>
+            Correct: <span class="correct">${item.correct}</span>
+          </div>`;
+        });
+        html += `</div>`;
+      } else {
+        html += `<p class="correct">All answers are correct. Well done!</p>`;
+      }
+      resultDiv.innerHTML = html;
+      window.scrollTo(0, document.body.scrollHeight);
+    });
+
+    // Запуск
+    renderSectionsList();
+  </script>
+</body>
+</html>
